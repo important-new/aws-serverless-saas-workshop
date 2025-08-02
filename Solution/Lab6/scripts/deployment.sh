@@ -26,7 +26,8 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-sam build -t shared-template.yaml --use-container
+sam build -t shared-template.yaml --use-container --cached 
+
 
 if [ "$IS_RUNNING_IN_EVENT_ENGINE" = true ]; then
   sam deploy --config-file shared-samconfig.toml --region=$REGION --parameter-overrides EventEngineParameter=$IS_RUNNING_IN_EVENT_ENGINE AdminUserPoolCallbackURLParameter=$ADMIN_SITE_URL TenantUserPoolCallbackURLParameter=$APP_SITE_URL
@@ -37,8 +38,16 @@ fi
 
 echo "Pooled tenant server code is getting deployed"
 REGION=$(aws configure get region)
-sam build -t tenant-template.yaml --use-container
+sam build -t tenant-template.yaml --use-container --cached
 sam deploy --config-file tenant-samconfig.toml --region=$REGION
+
+echo "Deploying TenantPipeline for Platinum tier provisioning"
+cd TenantPipeline
+npm install
+cdk bootstrap
+cdk deploy --require-approval never
+cd ..
+
 cd ../scripts
 
 if [ "$IS_RUNNING_IN_EVENT_ENGINE" = false ]; then
@@ -52,6 +61,16 @@ echo "Admin site URL: https://$ADMIN_SITE_URL"
 echo "Landing site URL: https://$LANDING_APP_SITE_URL"
 echo "App site URL: https://$APP_SITE_URL"
   
+# Get S3 Bucket names
+ADMIN_BUCKET=$(aws cloudformation describe-stacks --stack-name serverless-saas --query "Stacks[0].Outputs[?OutputKey=='AdminSiteBucket'].OutputValue" --output text)
+APP_BUCKET=$(aws cloudformation describe-stacks --stack-name serverless-saas --query "Stacks[0].Outputs[?OutputKey=='ApplicationSiteBucket'].OutputValue" --output text)
+LANDING_BUCKET=$(aws cloudformation describe-stacks --stack-name serverless-saas --query "Stacks[0].Outputs[?OutputKey=='LandingApplicationSiteBucket'].OutputValue" --output text)
+
+# Deploying Admin, Application and Landing UI code
+echo "Deploying frontend applications..."
+cd ../client/Admin && npm install && npm run build && aws s3 sync dist/ s3://$ADMIN_BUCKET/ --delete
+cd ../Application && npm install && npm run build && aws s3 sync dist/ s3://$APP_BUCKET/ --delete  
+cd ../Landing && npm install && npm run build && aws s3 sync dist/ s3://$LANDING_BUCKET/ --delete
 
 
 

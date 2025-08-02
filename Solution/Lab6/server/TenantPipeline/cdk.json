@@ -1,4 +1,9 @@
 {
   "app": "npx ts-node bin/pipeline.ts",
-  "context": {}
+  "context": {
+    "githubOwner": "important-new",
+    "githubRepo": "aws-serverless-saas-workshop",
+    "githubBranch": "main",
+    "githubTokenSecretName": "github-aws-workshop-token3"
+  }
 }

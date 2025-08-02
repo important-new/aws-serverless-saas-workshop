@@ -5,14 +5,14 @@ version: 0.2
 phases:
   install:    
     runtime-versions:
-      python: 3.9
+      python: 3.13 
     commands:
       # Install packages or any pre-reqs in this phase.
       # Upgrading SAM CLI to 1.33.0 version
-      - python -m pip install aws-sam-cli==1.33.0
+      - python -m pip install aws-sam-cli --upgrade
       - sam --version
       # Installing project dependencies
-      - cd Lab6/server/ProductService
+      - cd Solution/Lab6/server/ProductService
       - python -m pip install -r requirements.txt 
       - cd ../OrderService
       - python -m pip install -r requirements.txt 
@@ -21,8 +21,8 @@ phases:
   pre_build:
     commands:
       # Run tests, lint scripts or any other pre-build checks.
-      - cd ..
-      - export PYTHONPATH=./ProductService/
+      cd ..
+      #- export PYTHONPATH=./ProductService/
       # unit tests needs to be fixed. Commenting for now
       #- python -m pytest tests/unit/ProductService-test_handler.py
 

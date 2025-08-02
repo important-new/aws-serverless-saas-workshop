@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
   regApiGatewayUrl:
-    'https://duobieudcl.execute-api.us-west-2.amazonaws.com/prod',
+    'https://86ol2axeul.execute-api.us-east-1.amazonaws.com/prod',
 };
